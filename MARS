@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Content Editor</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            line-height: 1.6;
+        }
+        textarea {
+            width: 100%;
+            height: 300px;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            resize: vertical;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <h1>Edit File Content</h1>
+    <form action="/submit" method="POST">
+        <label for="file-content">Enter your file content:</label><br>
+        <textarea id="file-content" name="file-content" placeholder="Enter your content here..."></textarea><br><br>
+        <button type="submit">Submit</button>
+    </form>
+</body>
+</html>
