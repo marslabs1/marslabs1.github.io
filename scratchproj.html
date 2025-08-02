@@ -2,63 +2,112 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Responsive Scratch Project Embed</title>
+  <title>Scratch Project – Custom Background</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body {
       margin: 0;
       padding: 40px 0;
-      background: #f6f6f6;
+      background: transparent;
       font-family: Arial, sans-serif;
       min-height: 100vh;
       box-sizing: border-box;
       display: flex;
       justify-content: center;
       align-items: flex-start;
+      position: relative;
+      z-index: 1;
     }
-
-    .scratch-embed-container {
+    /* Custom background image with opacity, using ::before */
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      /* Set your image URL below */
+      background: url('bg-image.jpg') no-repeat center center / cover;
+      opacity: 0.45; /* Adjust background transparency here (0 = transparent, 1 = solid) */
+      pointer-events: none;
+    }
+    .scratch-row {
       display: flex;
       justify-content: center;
-      align-items: center;
+      align-items: stretch;
       width: 100%;
-      max-width: 700px;
-      margin: auto;
-      aspect-ratio: 485 / 402; /* Keeps the original Scratch player ratio */
+      max-width: 1120px;
+      gap: 24px;
+      padding: 0 16px;
+      box-sizing: border-box;
+    }
+    .side-box {
+      background: #fff;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+      border-radius: 10px;
+      padding: 24px 16px;
+      flex: 1 1 160px;
+      min-width: 120px;
+      max-width: 240px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      font-size: 1rem;
+    }
+    .scratch-embed-container {
       background: #fff;
       box-shadow: 0 4px 24px rgba(0,0,0,0.08);
       border-radius: 12px;
+      padding: 0;
+      flex: 2 1 440px;
+      max-width: 700px;
+      aspect-ratio: 485 / 402;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
-
     .scratch-embed-container iframe {
       width: 100%;
       height: 100%;
       border: none;
-      display: block;
       border-radius: 12px;
+      display: block;
       background: #fff;
     }
-
-    /* Responsive: Remove padding on small devices */
-    @media (max-width: 500px) {
-      body {
-        padding: 10px 0;
+    @media (max-width: 900px) {
+      .scratch-row {
+        flex-direction: column;
+        align-items: center;
+        gap: 16px;
+      }
+      .side-box,
+      .scratch-embed-container {
+        max-width: 95vw;
+        width: 100%;
+      }
+      .scratch-embed-container {
+        aspect-ratio: 485 / 402;
       }
     }
   </style>
 </head>
 <body>
-
-  <div class="scratch-embed-container">
-    <iframe
-      src="https://scratch.mit.edu/projects/1202768658/embed"
-      allowtransparency="true"
-      frameborder="0"
-      scrolling="no"
-      allowfullscreen
-      title="Scratch Project">
-    </iframe>
+  <div class="scratch-row">
+    <div class="side-box" id="left-box">
+      <p>Custom text or image here!</p>
+    </div>
+    <div class="scratch-embed-container">
+      <iframe
+        src="https://scratch.mit.edu/projects/1202768658/embed"
+        allowtransparency="true"
+        frameborder="0"
+        scrolling="no"
+        allowfullscreen
+        title="Scratch Project">
+      </iframe>
+    </div>
+    <div class="side-box" id="right-box">
+      <p>Put anything you want here!</p>
+    </div>
   </div>
-
 </body>
 </html>
