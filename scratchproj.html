@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Featured Scratch Project</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     body {
       margin: 0;
@@ -13,22 +13,34 @@
       min-height: 100vh;
       box-sizing: border-box;
       display: flex;
-      justify-content: center;
-      align-items: flex-start;
+      flex-direction: column;
+      align-items: center;
       position: relative;
       z-index: 1;
     }
-    /* Custom background image with opacity, using ::before */
+
+    /* Custom background image with opacity using ::before */
     body::before {
       content: "";
       position: fixed;
       inset: 0;
       z-index: -1;
-      /* Set your image URL below */
-      background: url('bg-image.jpg') no-repeat center center / cover;
-      opacity: 0.45; /* Adjust background transparency here (0 = transparent, 1 = solid) */
+      background: url('your-image.jpg') no-repeat center center / cover;
+      opacity: 0.45;
       pointer-events: none;
     }
+
+    .page-title {
+      width: 100%;
+      text-align: center;
+      font-size: 2.3rem;
+      font-weight: bold;
+      margin-bottom: 34px;
+      color: #212121;
+      letter-spacing: 1px;
+      text-shadow: 0 2px 14px rgba(0,0,0,0.08);
+    }
+
     .scratch-row {
       display: flex;
       justify-content: center;
@@ -39,32 +51,38 @@
       padding: 0 16px;
       box-sizing: border-box;
     }
+
     .side-box {
       background: #fff;
       box-shadow: 0 4px 16px rgba(0,0,0,0.08);
       border-radius: 10px;
       padding: 24px 16px;
-      flex: 1 1 160px;
-      min-width: 120px;
-      max-width: 240px;
+      flex: 1 1 200px;
+      min-width: 150px;
+      max-width: 260px;
       display: flex;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
+      align-items: flex-start;
+      justify-content: flex-start;
+      text-align: left;
       font-size: 1rem;
+      overflow: auto;          /* Makes the box scrollable if needed */
+      max-height: 430px;       /* Adjust as needed: this sets box height */
     }
+
     .scratch-embed-container {
       background: #fff;
       box-shadow: 0 4px 24px rgba(0,0,0,0.08);
       border-radius: 12px;
       padding: 0;
-      flex: 2 1 440px;
-      max-width: 700px;
-      aspect-ratio: 485 / 402;
+      flex: 2 1 500px;
+      max-width: 720px;
+      aspect-ratio: 485 / 402;     /* Keeps original player aspect ratio and size */
+      min-width: 320px;
       display: flex;
       align-items: center;
       justify-content: center;
     }
+
     .scratch-embed-container iframe {
       width: 100%;
       height: 100%;
@@ -73,6 +91,8 @@
       display: block;
       background: #fff;
     }
+
+    /* Responsive: stack vertically on small screens */
     @media (max-width: 900px) {
       .scratch-row {
         flex-direction: column;
@@ -81,19 +101,29 @@
       }
       .side-box,
       .scratch-embed-container {
-        max-width: 95vw;
+        max-width: 100vw;
         width: 100%;
       }
       .scratch-embed-container {
         aspect-ratio: 485 / 402;
       }
+      .side-box {
+        max-height: 260px; /* Reduce max height for mobile */
+      }
     }
   </style>
 </head>
 <body>
+  <h1 class="page-title">Featured scratch project</h1>
+
   <div class="scratch-row">
     <div class="side-box" id="left-box">
-      <p>Custom text or image here!</p>
+      <p>
+        This is the LEFT scrollable box.<br><br>
+        Add lots of content here and see the scrollbar appear when the content exceeds <code>max-height</code>.<br><br>
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque dictum lorem leo, at varius augue dictum id. Morbi vitae lobortis sem. Suspendisse sapien magna, suscipit id hendrerit sed, eleifend in nibh.<br><br>
+        (Add more or less text as you like!)
+      </p>
     </div>
     <div class="scratch-embed-container">
       <iframe
@@ -102,11 +132,16 @@
         frameborder="0"
         scrolling="no"
         allowfullscreen
-        title="Scratch Project">
-      </iframe>
+        title="Scratch Project"
+      ></iframe>
     </div>
     <div class="side-box" id="right-box">
-      <p>Put anything you want here!</p>
+      <p>
+        This is the RIGHT scrollable box.<br><br>
+        Add text or other elements<br><br>
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque dictum lorem leo, at varius augue dictum id. Morbi vitae lobortis sem. Suspendisse sapien magna, suscipit id hendrerit sed, eleifend in nibh.<br><br>
+        (Scroll to see more!)
+      </p>
     </div>
   </div>
 </body>
