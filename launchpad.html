@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Planetary System Webpage</title>
+  <style>
+    html, body {
+      margin: 0;
+      overflow: hidden;
+      height: 100%;
+      background: black;
+      font-family: sans-serif;
+    }
+
+    canvas {
+      display: block;
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 0;
+    }
+
+    .overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background-image: url('overlay.png');
+      background-size: cover;
+      background-repeat: no-repeat;
+      background-position: center;
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    .custom-button {
+      position: absolute;
+      z-index: 3;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    .custom-button:active {
+      transform: scale(0.95);
+    }
+  </style>
+</head>
+<body>
+  <canvas id="starfield"></canvas>
+  <div class="overlay"></div>
+
+  <!-- Example Button -->
+  <img id="btn1" class="custom-button" src="button_off.png" style="top: 50px; left: 50px;" onclick="toggleButton(this, 'button_on.png', 'button_off.png')" />
+
+  <!-- Planets (Social Media Links) -->
+  <a href="https://www.youtube.com/@mars-labs-home" target="_blank" id="planet1" class="custom-button">
+    <img src="planet1.png" style="width: 40px; height: 40px;" />
+  </a>
+  <a href="" target="_blank" id="planet2" class="custom-button">
+    <img src="planet2.png" style="width: 40px; height: 40px;" />
+  </a>
+  <a href="https://instagram.com" target="_blank" id="planet3" class="custom-button">
+    <img src="planet3.png" style="width: 40px; height: 40px;" />
+  </a>
+
+  <script>
+    const canvas = document.getElementById("starfield");
+    const ctx = canvas.getContext("2d");
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    let stars = [];
+    for (let i = 0; i < 300; i++) {
+      stars.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        r: Math.random() * 1.5,
+      });
+    }
+
+    function drawStars() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = "white";
+      for (let s of stars) {
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    function drawCentralStar() {
+      const cx = canvas.width / 2;
+      const cy = canvas.height / 2;
+      const gradient = ctx.createRadialGradient(cx, cy, 0, cx, cy, 30);
+      gradient.addColorStop(0, "#ffffcc");
+      gradient.addColorStop(1, "rgba(255, 204, 0, 0)");
+      ctx.fillStyle = gradient;
+      ctx.beginPath();
+      ctx.arc(cx, cy, 30, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    const planets = [
+      { id: 'planet1', angle: 0, speed: 0.005, a: 120, b: 80 },
+      { id: 'planet2', angle: 1.5, speed: 0.003, a: 180, b: 110 },
+      { id: 'planet3', angle: 3.0, speed: 0.002, a: 250, b: 150 }
+    ];
+
+    function drawOrbits() {
+      ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+      ctx.lineWidth = 1;
+      planets.forEach(p => {
+        ctx.beginPath();
+        for (let t = 0; t < Math.PI * 2; t += 0.01) {
+          const x = canvas.width / 2 + p.a * Math.cos(t);
+          const y = canvas.height / 2 + p.b * Math.sin(t);
+          if (t === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.closePath();
+        ctx.stroke();
+      });
+    }
+
+    function animate() {
+      drawStars();
+      drawOrbits();
+      drawCentralStar();
+
+      planets.forEach(p => {
+        p.angle += p.speed;
+        const x = canvas.width / 2 + p.a * Math.cos(p.angle);
+        const y = canvas.height / 2 + p.b * Math.sin(p.angle);
+        const el = document.getElementById(p.id);
+        el.style.left = `${x - 20}px`;
+        el.style.top = `${y - 20}px`;
+      });
+
+      requestAnimationFrame(animate);
+    }
+    animate();
+
+    function toggleButton(button, onSrc, offSrc) {
+      if (button.src.includes(offSrc)) {
+        button.src = onSrc;
+      } else {
+        button.src = offSrc;
+      }
+    }
+  </script>
+</body>
+</html>
