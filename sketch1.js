@@ -6,7 +6,7 @@ CONSTANTS
 
 const MOUSE_HISTORY_LENGTH = 10;
 const SHIP_FOLLOW_DELAY = 0.7;
-const MAX_ASTEROIDS = 20;
+const MAX_ASTEROIDS = 10;
 const ASTEROID_TYPES = 5; // Number of different asteroid images
 
 /*=====================
