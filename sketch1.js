@@ -1,43 +1,65 @@
 /*=====================
-PERFORMANCE OPTIMIZED FOR MOBILE
+
+CONSTANTS
+
 =====================*/
 
-/*--- CONSTANTS ---*/
 const MOUSE_HISTORY_LENGTH = 10;
 const SHIP_FOLLOW_DELAY = 0.7;
+const MAX_ASTEROIDS = 20;
 const ASTEROID_TYPES = 5; // Number of different asteroid images
 
-let MAX_ASTEROIDS;
-let STAR_COUNT;
-let EXPLOSION_PARTICLES;
-let SMOKE_FADE;
+/*=====================
 
+VARIABLES
+
+=====================*/
+
+// Game state
 let currentPage = "main";
 let launchInitiated = false;
 let isMobile;
-let asteroidImages = [];
+let asteroidImages = []; // Array to hold multiple asteroid images
+
+// Visual effects
 let flashAlpha = 0;
 let flashActive = false;
+
+// UI elements
 let welcomeY;
 let buttonPanelY;
 let launchButton;
 
+// Game objects
 let stars = [];
 let asteroids = [];
 let bullets = [];
 let smokeParticles = [];
 let explosions = [];
+
+// Spaceship movement
 let shipPosition = { x: 0, y: 0 };
 let mouseHistory = [];
 let angle = 0;
 let targetAngle = 0;
 
-let font, spaceship;
+// Assets
+let font;
+let spaceship;
+
+// Score
+let score = 0;
+
+/*=====================
+
+INITIALIZATION & SETUP
+
+=====================*/
 
 function preload() {
   font = loadFont("assets/PressStart2P-Regular.ttf");
   spaceship = loadImage("assets/spaceship.png");
-  // Load asteroid images
+  // Load multiple asteroid images
   for (let i = 1; i <= ASTEROID_TYPES; i++) {
     asteroidImages.push(loadImage(`assets/asteroid${i}.png`));
   }
@@ -49,37 +71,32 @@ function setup() {
   textFont(font);
   textAlign(CENTER, CENTER);
 
-  // MOBILE: reduce object count and particle complexity
-  if (isMobile) {
-    MAX_ASTEROIDS = 6;
-    STAR_COUNT = 30;
-    EXPLOSION_PARTICLES = 8;
-    SMOKE_FADE = 10;
-    frameRate(30);
-  } else {
-    MAX_ASTEROIDS = 20;
-    STAR_COUNT = 100;
-    EXPLOSION_PARTICLES = 20;
-    SMOKE_FADE = 5;
-    frameRate(60);
-  }
-
   // Initialize positions
   welcomeY = height / 2 - 50;
   buttonPanelY = height;
   shipPosition = { x: width / 2, y: height / 2 };
 
+  // Create stars
   stars = [];
-  for (let i = 0; i < STAR_COUNT; i++) stars.push(new Star());
+  for (let i = 0; i < (isMobile ? 30 : 100); i++) {
+    stars.push(new Star());
+  }
 
+  // Create UI buttons
   createButtons();
+
+  // Create initial asteroids
   asteroids = [];
-  for (let i = 0; i < min(3, MAX_ASTEROIDS); i++) {
+  for (let i = 0; i < 3; i++) {
     asteroids.push(new Asteroid());
   }
+
+  // Reset score each time game starts
+  score = 0;
 }
 
 function createButtons() {
+  // Launch button (main button)
   launchButton = {
     label: "LAUNCH",
     x: width / 2,
@@ -90,6 +107,12 @@ function createButtons() {
   };
 }
 
+/*=====================
+
+MAIN DRAW LOOP
+
+=====================*/
+
 function draw() {
   background(10);
   drawStars();
@@ -97,7 +120,7 @@ function draw() {
     drawSubPage(currentPage);
     return;
   }
-
+  drawScoreCounter(); // <-- Draws score at top-left
   updateSmokeParticles();
   updateSpaceshipPosition();
   drawUI();
@@ -108,17 +131,37 @@ function draw() {
   drawSpaceship();
 }
 
-/*--- DRAW OBJECTS ---*/
+/*=====================
+
+GAME OBJECTS DRAWING
+
+=====================*/
+
 function drawStars() {
-  for (let star of stars) star.update(), star.show();
+  for (let star of stars) {
+    star.update();
+    star.show();
+  }
 }
 
 function updateSmokeParticles() {
   for (let i = smokeParticles.length - 1; i >= 0; i--) {
     smokeParticles[i].update();
     smokeParticles[i].show();
-    if (smokeParticles[i].isFinished()) smokeParticles.splice(i, 1);
+    if (smokeParticles[i].isFinished()) {
+      smokeParticles.splice(i, 1);
+    }
   }
+}
+
+function drawScoreCounter() {
+  push();
+  textFont(font);
+  fill(255);
+  textSize(isMobile ? 14 : 20);
+  textAlign(LEFT, TOP);
+  text("Score: " + score, 20, 20);
+  pop();
 }
 
 function drawUI() {
@@ -142,20 +185,29 @@ function handleFlashEffect() {
 }
 
 function handleAsteroids() {
-  // Asteroid spawning controlled for mobile
-  if (asteroids.length < MAX_ASTEROIDS && random(1) < (isMobile ? 0.005 : 0.01) && !launchInitiated) {
+  // Controlled asteroid spawning
+  const asteroidSpawnProb = isMobile ? 0.005 : 0.01;
+  if (asteroids.length < (isMobile ? 6 : MAX_ASTEROIDS) && random(1) < asteroidSpawnProb && !launchInitiated) {
     asteroids.push(new Asteroid());
   }
+
+  // Update and draw asteroids
   for (let i = asteroids.length - 1; i >= 0; i--) {
     asteroids[i].update();
     asteroids[i].show();
+
+    // Check for bullet collisions
     for (let j = bullets.length - 1; j >= 0; j--) {
       if (asteroids[i].hits(bullets[j])) {
+        // Create explosion
         explosions.push(new Explosion(
-          asteroids[i].x, asteroids[i].y, asteroids[i].size
+          asteroids[i].x,
+          asteroids[i].y,
+          asteroids[i].size
         ));
         asteroids.splice(i, 1);
         bullets.splice(j, 1);
+        score++; // <-- increment score when asteroid hit!
         break;
       }
     }
@@ -166,23 +218,35 @@ function handleBullets() {
   for (let i = bullets.length - 1; i >= 0; i--) {
     bullets[i].update();
     bullets[i].show();
-    if (bullets[i].offScreen()) bullets.splice(i, 1);
+    if (bullets[i].offScreen()) {
+      bullets.splice(i, 1);
+    }
   }
 }
 
 function handleExplosions() {
   for (let i = explosions.length - 1; i >= 0; i--) {
     explosions[i].show();
-    if (explosions[i].update()) explosions.splice(i, 1);
+    if (explosions[i].update()) {
+      explosions.splice(i, 1);
+    }
   }
 }
 
-/*--- SPACESHIP MOVEMENT ---*/
+/*=====================
+
+SPACESHIP MOVEMENT
+
+=====================*/
+
 function updateSpaceshipPosition() {
   if (frameCount % 2 === 0) {
     mouseHistory.push({x: mouseX, y: mouseY});
-    if (mouseHistory.length > MOUSE_HISTORY_LENGTH) mouseHistory.shift();
+    if (mouseHistory.length > MOUSE_HISTORY_LENGTH) {
+      mouseHistory.shift();
+    }
   }
+
   let targetIndex = max(0, floor(mouseHistory.length * SHIP_FOLLOW_DELAY));
   let targetPos = mouseHistory[targetIndex] || {x: mouseX, y: mouseY};
   shipPosition.x = lerp(shipPosition.x, targetPos.x, 0.1);
@@ -203,7 +267,12 @@ function drawSpaceship() {
   pop();
 }
 
-/*--- UI COMPONENTS ---*/
+/*=====================
+
+UI COMPONENTS
+
+=====================*/
+
 function drawButton(btn) {
   let isHover = overButton(btn);
   let isPressed = mouseIsPressed && isHover;
@@ -214,6 +283,7 @@ function drawButton(btn) {
   } else if (isHover) {
     displayColor = lerpColor(baseColor, color(255), 0.2);
   }
+
   fill(displayColor);
   stroke(255);
   strokeWeight(3);
@@ -225,15 +295,11 @@ function drawButton(btn) {
   text(btn.label, btn.x, btn.y);
 }
 
-/*--- EVENT HANDLERS (debounced resize) ---*/
-let lastResize = 0;
-function windowResized() {
-  // Prevent rapid resize on mobile
-  if (millis() - lastResize < 1000) return;
-  resizeCanvas(windowWidth, windowHeight);
-  setup();
-  lastResize = millis();
-}
+/*=====================
+
+EVENT HANDLERS
+
+=====================*/
 
 function mousePressed() {
   if (!launchInitiated && overButton(launchButton)) {
@@ -241,19 +307,35 @@ function mousePressed() {
     //window.location.href = "main.html";
     return;
   }
-  if (currentPage === "main") bullets.push(new Bullet(shipPosition.x, shipPosition.y, angle));
+
+  if (currentPage === "main") {
+    bullets.push(new Bullet(shipPosition.x, shipPosition.y, angle));
+  }
 }
 
 function mouseClicked() {
-  if (currentPage !== "main") currentPage = "main";
+  if (currentPage !== "main") {
+    currentPage = "main";
+  }
 }
 
-/*--- GAME FUNCTIONS ---*/
+function windowResized() {
+  resizeCanvas(windowWidth, windowHeight);
+  setup();
+}
+
+/*=====================
+
+GAME FUNCTIONS
+
+=====================*/
+
 function startGame() {
   flashAlpha = 255;
   flashActive = true;
   asteroids = [];
   launchInitiated = true;
+  score = 0;
 }
 
 function overButton(btn) {
@@ -269,7 +351,12 @@ function lerpAngle(a, b, t) {
   return a + (((b - a + PI) % (2 * PI)) - PI) * t;
 }
 
-/*--- GAME CLASSES (mobile-optimized) ---*/
+/*=====================
+
+GAME CLASSES
+
+=====================*/
+
 class Star {
   constructor() {
     this.x = random(width);
@@ -298,7 +385,7 @@ class Smoke {
     this.y += random(-1, 1);
     this.x += random(-1, 1);
     this.size *= 0.98;
-    this.alpha -= SMOKE_FADE;
+    this.alpha -= isMobile ? 10 : 5;
   }
   show() {
     noStroke();
@@ -329,14 +416,15 @@ class Bullet {
   offScreen() {
     const buffer = 50;
     return (this.x < -buffer || this.x > width + buffer ||
-      this.y < -buffer || this.y > height + buffer);
+            this.y < -buffer || this.y > height + buffer);
   }
 }
 
 class Asteroid {
   constructor() {
     this.reset();
-    this.size = random(isMobile ? 30 : 30, isMobile ? 40 : 60); // Smaller for mobile
+    this.size = random(isMobile ? 30 : 30, isMobile ? 40 : 60);
+    // Randomly select one of the asteroid images
     this.img = random(asteroidImages);
   }
   reset() {
@@ -344,10 +432,22 @@ class Asteroid {
     this.speedX = random(-1.5, 1.5);
     this.speedY = random(-1.5, 1.5);
     switch(edge) {
-      case 0: this.x = random(width); this.y = -50; break;
-      case 1: this.x = width + 50; this.y = random(height); break;
-      case 2: this.x = random(width); this.y = height + 50; break;
-      case 3: this.x = -50; this.y = random(height); break;
+      case 0: // top
+        this.x = random(width);
+        this.y = -50;
+        break;
+      case 1: // right
+        this.x = width + 50;
+        this.y = random(height);
+        break;
+      case 2: // bottom
+        this.x = random(width);
+        this.y = height + 50;
+        break;
+      case 3: // left
+        this.x = -50;
+        this.y = random(height);
+        break;
     }
   }
   update() {
@@ -374,7 +474,8 @@ class Explosion {
     this.particles = [];
     this.position = createVector(x, y);
     this.size = size;
-    for (let i = 0; i < EXPLOSION_PARTICLES; i++) {
+    let nParticles = isMobile ? 8 : 20;
+    for (let i = 0; i < nParticles; i++) {
       this.particles.push({
         pos: createVector(x, y),
         vel: p5.Vector.random2D().mult(random(1, 3)),
