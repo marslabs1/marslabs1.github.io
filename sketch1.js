@@ -336,6 +336,9 @@ function startGame() {
   asteroids = [];
   launchInitiated = true;
   score = 0;
+
+  // Redirect to launchpad.html
+  window.location.href = "launchpad.html";
 }
 
 function overButton(btn) {
