@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>3D Design Mad Libs</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root { --max: 20; }
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 2rem; }
+    h1 { margin-bottom: 1rem; }
+    .hidden { display: none; }
+    .row { display: grid; grid-template-columns: 1fr 1fr auto; gap: 0.75rem; align-items: end; max-width: 800px; }
+    .col { display: flex; flex-direction: column; }
+    label { font-weight: 600; margin-bottom: 0.25rem; }
+    input[type="text"] { padding: 0.5rem; font-size: 1rem; }
+    button { padding: 0.55rem 0.9rem; font-size: 1rem; cursor: pointer; }
+    .lists { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 1.25rem; max-width: 800px; }
+    ul { margin-top: 0.5rem; padding-left: 1.25rem; }
+    .meta { color: #555; font-size: 0.9rem; }
+    .actions { margin-top: 1.25rem; }
+    .sentence { font-size: 1.25rem; margin: 1rem 0; }
+    .note { color: #666; margin-top: 0.75rem; }
+    .back { margin-left: 0.5rem; }
+  </style>
+</head>
+<body>
+  <!-- Collect Section -->
+  <section id="collect">
+    <h1>3D Design Mad Libs</h1>
+
+    <div class="row">
+      <div class="col">
+        <label for="objectInput">Objects</label>
+        <input id="objectInput" type="text" placeholder="e.g., lamp, spaceship, chair" />
+      </div>
+      <div class="col">
+        <label for="partInput">Parts of objects</label>
+        <input id="partInput" type="text" placeholder="e.g., hinges, wings, handle" />
+      </div>
+      <div class="col">
+        <label>&nbsp;</label>
+        <button id="addBtn" type="button">Submit</button>
+      </div>
+    </div>
+
+    <div class="lists">
+      <div>
+        <div><strong>Objects</strong> <span id="objCount" class="meta">(0 / 20)</span></div>
+        <ul id="objectsList"></ul>
+      </div>
+      <div>
+        <div><strong>Parts of objects</strong> <span id="partCount" class="meta">(0 / 20)</span></div>
+        <ul id="partsList"></ul>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button id="startBtn" type="button" disabled>Start the game</button>
+    </div>
+  </section>
+
+  <!-- Play Section -->
+  <section id="play" class="hidden">
+    <h1>What will you design today?</h1>
+
+    <div class="sentence" id="sentence">
+      Design a/an __________ with __________
+    </div>
+
+    <button id="genBtn" type="button">Generate my challenge</button>
+    <button id="backBtn" type="button" class="back">Back</button>
+
+    <div class="note" id="status"></div>
+  </section>
+
+  <script>
+    // Data
+    const MAX_ITEMS = 20;
+    const objects = [];
+    const parts = [];
+
+    // Elements (Collect)
+    const collectSec = document.getElementById('collect');
+    const objectInput = document.getElementById('objectInput');
+    const partInput = document.getElementById('partInput');
+    const addBtn = document.getElementById('addBtn');
+    const startBtn = document.getElementById('startBtn');
+    const objectsList = document.getElementById('objectsList');
+    const partsList = document.getElementById('partsList');
+    const objCount = document.getElementById('objCount');
+    const partCount = document.getElementById('partCount');
+
+    // Elements (Play)
+    const playSec = document.getElementById('play');
+    const sentenceEl = document.getElementById('sentence');
+    const genBtn = document.getElementById('genBtn');
+    const backBtn = document.getElementById('backBtn');
+    const statusEl = document.getElementById('status');
+
+    // Helpers
+    function show(section) {
+      collectSec.classList.toggle('hidden', section !== 'collect');
+      playSec.classList.toggle('hidden', section !== 'play');
+    } // [web:22][web:33]
+
+    function updateCounts() {
+      objCount.textContent = `(${objects.length} / ${MAX_ITEMS})`;
+      partCount.textContent = `(${parts.length} / ${MAX_ITEMS})`;
+    } // [web:27]
+
+    function addListItem(ul, text) {
+      const li = document.createElement('li');
+      li.textContent = text;
+      ul.appendChild(li);
+    } // [web:22]
+
+    function addEntries() {
+      const objVal = objectInput.value.trim();
+      const partVal = partInput.value.trim();
+
+      let added = false;
+
+      if (objVal && objects.length < MAX_ITEMS) {
+        objects.push(objVal);
+        addListItem(objectsList, objVal);
+        objectInput.value = '';
+        added = true;
+      }
+      if (partVal && parts.length < MAX_ITEMS) {
+        parts.push(partVal);
+        addListItem(partsList, partVal);
+        partInput.value = '';
+        added = true;
+      }
+
+      updateCounts();
+
+      // Enable start when both have at least one
+      startBtn.disabled = !(objects.length > 0 && parts.length > 0);
+
+      // Focus
+      if (added) {
+        if (!objVal && partVal) objectInput.focus();
+        else if (objVal && !partVal) partInput.focus();
+        else objectInput.focus();
+      }
+    } // [web:22]
+
+    function pickRandom(arr) {
+      if (!arr.length) return '';
+      const idx = Math.floor(Math.random() * arr.length);
+      return arr[idx];
+    } // [web:33]
+
+    function indefiniteArticle(word) {
+      if (!word) return 'a';
+      const first = word.trim()[0]?.toLowerCase() || '';
+      return ['a','e','i','o','u'].includes(first) ? 'an' : 'a';
+    } // [web:22]
+
+    function updatePlayStatus() {
+      if (!objects.length || !parts.length) {
+        statusEl.textContent = 'Tip: Add at least one item in each list to generate a challenge.';
+      } else {
+        statusEl.textContent = `Loaded ${objects.length} objects and ${parts.length} parts.`;
+      }
+    } // [web:22]
+
+    function generate() {
+      if (!objects.length || !parts.length) {
+        sentenceEl.textContent = 'Design a/an __________ with __________';
+        return;
+      }
+      const obj = pickRandom(objects);
+      const part = pickRandom(parts);
+      const article = indefiniteArticle(obj);
+      sentenceEl.textContent = `Design ${article} ${obj} with ${part}`;
+    } // [web:33]
+
+    // Events
+    addBtn.addEventListener('click', addEntries);
+    objectInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); addEntries(); }});
+    partInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); addEntries(); }});
+
+    startBtn.addEventListener('click', () => {
+      show('play');
+      updatePlayStatus();
+      sentenceEl.textContent = 'Design a/an __________ with __________';
+    }); // [web:22]
+
+    genBtn.addEventListener('click', generate); // [web:33]
+    backBtn.addEventListener('click', () => show('collect')); // [web:22]
+
+    // Initial state
+    show('collect'); // [web:22]
+    updateCounts(); // [web:27]
+  </script>
+</body>
+</html>
